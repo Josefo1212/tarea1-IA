@@ -33,7 +33,6 @@ for col in ["Popularity", "Vote_Count", "Vote_Average"]:
     out = df[(df[col] < q1 - 1.5 * iqr) | (df[col] > q3 + 1.5 * iqr)]
     print(col, "-> outliers:", len(out))
 
-# Transformación logarítmica (Popularity y Vote_Count están muy sesgadas)
 df["log_Popularity"] = np.log1p(df["Popularity"])
 df["log_Vote_Count"] = np.log1p(df["Vote_Count"])
 df.to_csv("datos_limpios.csv", index=False)
