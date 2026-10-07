@@ -1,4 +1,6 @@
 
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,9 +8,12 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-from mylinearregression import MyLinearRegression
+from MyLinearRegression import MyLinearRegression
+    
+CSV_DIR = Path(__file__).resolve().parents[2] / "CSV"
+GRAF_DIR = CSV_DIR.parent / "graficas"
 
-df = pd.read_csv('Top Movies dataset.csv')
+df = pd.read_csv(CSV_DIR / "Top Movies dataset.csv")
 print("filas y columnas del dataset: ", df.shape)
 df.info()
 print(df.describe().round(2))
@@ -35,28 +40,23 @@ for col in ["Popularity", "Vote_Count", "Vote_Average"]:
 
 df["log_Popularity"] = np.log1p(df["Popularity"])
 df["log_Vote_Count"] = np.log1p(df["Vote_Count"])
-df.to_csv("datos_limpios.csv", index=False)
+df.to_csv(CSV_DIR / "datos_limpios.csv", index=False)
 
 cols = ["Popularity", "Vote_Count", "Vote_Average"]
 cols_all = cols + ["log_Popularity", "log_Vote_Count"]
 
 df[cols_all].hist(bins=30, figsize=(12, 8))
-plt.tight_layout(); plt.show()
-
-fig, axes = plt.subplots(1, 3, figsize=(14, 5))
-for ax, col in zip(axes, cols):
-    sns.boxplot(y=df[col], ax=ax)
-    ax.set_title("Boxplot de " + col)
-plt.tight_layout(); plt.show()
+plt.tight_layout(); plt.savefig(GRAF_DIR / "histogramas.png"); plt.close()
 
 plt.figure(figsize=(8, 6))
 sns.heatmap(df[cols_all].corr(), annot=True, cmap="coolwarm", center=0)
-plt.title("Matriz de correlación"); plt.show()
+plt.title("Matriz de correlación"); plt.savefig(GRAF_DIR / "correlacion.png"); plt.close()
 
 for x in ["Popularity", "Vote_Count", "log_Popularity", "log_Vote_Count"]:
     sns.regplot(data=df, x=x, y="Vote_Average",
                 scatter_kws={"alpha": 0.3, "s": 10}, line_kws={"color": "red"})
-    plt.title(x + " vs Vote_Average"); plt.show()
+    plt.title(x + " vs Vote_Average")
+    plt.savefig(GRAF_DIR / ("regresion_" + x + ".png")); plt.close()
 
 print(df[cols_all].corr()["Vote_Average"].sort_values(ascending=False))
 
@@ -87,3 +87,10 @@ for nombre, m in [("Mía", mio), ("sklearn", sk)]:
           f"Test: MSE={mean_squared_error(y_test, pte):.4f} "
           f"R2={r2_score(y_test, pte):.4f}")
 print("Varianza de y (referencia):", y.var())
+
+plt.figure(figsize=(6, 6))
+plt.scatter(y_test, pte, alpha=0.3, s=10)
+plt.plot([y.min(), y.max()], [y.min(), y.max()], "r--")
+plt.xlabel("Vote_Average real"); plt.ylabel("Vote_Average predicho")
+plt.title("Predicciones vs reales")
+plt.tight_layout(); plt.savefig(GRAF_DIR / "predicciones_vs_reales.png"); plt.close()
